@@ -1,5 +1,5 @@
 lazy val pew = "com.workflowfm" %% "pew" % "1.4.0-SNAPSHOT"
-lazy val sim = "com.workflowfm" %% "workflowfm-simulator" % "0.2-alpha-SNAPSHOT"
+lazy val sim = "com.workflowfm" %% "wfm-simulator" % "0.2.1"
 lazy val pewsim = "com.workflowfm" %% "pew-simulator" % "1.4.0-SNAPSHOT"
 
 lazy val root = (project in file(".")).
