@@ -15,3 +15,7 @@
 \#*\#
 .\#*
 .projectile
+.bloop/
+.metals/
+project/metals.sbt
+output/HealthcareHandover*
