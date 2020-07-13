@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <link rel="stylesheet" href="d3-timeline/css/wfm-timeline.css">
+    <title>WorkflowFM - Results Timeline</title>
+    	<script src="http://d3js.org/d3.v3.min.js"></script>
+	<script type="text/javascript" src="d3-timeline/js/d3-timeline.js"></script>
+</head>
+<body>
+<h2>Resources:</h2>
+<div id="resources"></div>
+<h2>Simulations:</h2>
+<div id="simulations"></div>
+<script type="text/javascript" src="TestNoPEW-simdata.js"></script> <!-- widthPerTick = 60, leftMargin = 100, tickInterval = 1, tickTime = null, tickTimeFormat = null -->
+<script type="text/javascript" src="d3-timeline/js/wfm-simulation-timeline.js"></script>
+<script type="text/javascript">
+  displayOne("#resources", resourceData, 40, 100);
+  displayOne("#simulations", simulationData, 40, 100);
+</script>
+</body>
+</html>
