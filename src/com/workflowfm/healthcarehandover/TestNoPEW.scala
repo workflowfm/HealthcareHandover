@@ -1,6 +1,6 @@
 package com.workflowfm.healthcarehandover
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, ActorRef }
 import akka.util.Timeout
 import akka.pattern.ask
 import com.workflowfm.healthcarehandover.HealthcareHandoverTypes._
@@ -16,10 +16,11 @@ import java.io.File
 import java.util.UUID
 import java.lang.Runtime
 import com.workflowfm.pew.execution.AkkaExecutor
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.concurrent.Await
 import scala.util.Try
+import scala.util.{Failure, Success}
 import uk.ac.ed.inf.ppapapan.subakka.Subscriber
 
 object TestNoPEW {
@@ -35,8 +36,8 @@ object TestNoPEW {
 
 	val obstacleProbability = 0.3
 	
-	val diagnosis = new HealthcareService("Diagnosis")
-	val haemodialysis = new HealthcareService("Haemodialysis")
+	//val diagnosis = new HealthcareService("Diagnosis")
+	//val haemodialysis = new HealthcareService("Haemodialysis")
 	
 	
     val r1 = new TaskResource("r1",0)
@@ -61,13 +62,32 @@ object TestNoPEW {
 
 	coordinator ! Coordinator.AddResources(resources)
 
-    val generator = new ConstantGenerator[Long](3L)
-      
-    coordinator ! Coordinator.AddSim(5L,system.actorOf((TaskSimulatorActor.props("sim1",coordinator,Seq("r1","r2"),generator)),"sim1"))
-    coordinator ! Coordinator.AddSim(5L,system.actorOf(Props(new TaskSimulatorActor("sim2",coordinator,Seq("r1"),generator)),"sim2"))
-    coordinator ! Coordinator.AddSim(5L,system.actorOf(Props(new TaskSimulatorActor("sim3",coordinator,Seq("r2"),generator)),"sim3"))
+  val generator = new ConstantGenerator[Long](3L)
 
-    //sims map { coordinator ! Coordinator.AddSim(0L,_) }
+  class TestSimulationActor(
+    name: String,
+    coordinator: ActorRef
+  ) (implicit context: ExecutionContext)
+  extends SimulationActor(name,coordinator) {
+    def run() = {
+      val g1 = TaskGenerator("tX1","simX",generator,new ConstantGenerator(0L))
+      val g2 = TaskGenerator("tX2","simX",generator,new ConstantGenerator(0L))
+      val r = Seq("r1","r2")
+      val task1 = task(g1, r:_*)
+      ready()
+      val task2 = task(g2, r:_*)
+      val future = Future((task1.value.get.get,task2.value.get.get))
+      ready()
+      future
+    }
+  }
+      
+  coordinator ! Coordinator.AddSim(5L,system.actorOf((TaskSimulatorActor.props("sim1",coordinator,Seq("r1","r2"),generator)),"sim1"))
+  coordinator ! Coordinator.AddSim(4L,system.actorOf(Props(new TaskSimulatorActor("sim2",coordinator,Seq("r1"),generator)),"sim2"))
+  coordinator ! Coordinator.AddSim(3L,system.actorOf(Props(new TaskSimulatorActor("sim3",coordinator,Seq("r2"),generator)),"sim3"))
+  coordinator ! Coordinator.AddSim(0L,system.actorOf(Props(new TestSimulationActor("simX",coordinator)),"simX"))
+
+  //sims map { coordinator ! Coordinator.AddSim(0L,_) }
 	coordinator ! Coordinator.Start
   }
 }
