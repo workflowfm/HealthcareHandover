@@ -69,22 +69,29 @@ object TestNoPEW {
     coordinator: ActorRef
   ) (implicit context: ExecutionContext)
   extends SimulationActor(name,coordinator) {
-    def run() = {
-      val g1 = TaskGenerator("tX1","simX",generator,new ConstantGenerator(0L))
-      val g2 = TaskGenerator("tX2","simX",generator,new ConstantGenerator(0L))
+    override def run() = {
+      val g1 = TaskGenerator("tX1","simX",generator,ConstantGenerator(0L))
+      val g2 = TaskGenerator("tX2","simX",generator,ConstantGenerator(0L))
+      val g3 = TaskGenerator("tX3","simX",generator,ConstantGenerator(0L))
       val r = Seq("r1","r2")
       val task1 = task(g1, r:_*)
+      val task2 = task(g2, "r1")
+      val future1 = task1
+      val future2 = task2
       ready()
-      val task2 = task(g2, r:_*)
-      val future = Future((task1.value.get.get,task2.value.get.get))
-      ready()
-      future
+
+      //val future3 = Future.sequence(Seq(future1,future2)).flatMap { x =>
+      //  val task3 = task(g3, "r1")
+      //  ready()
+      //  task3
+      //}
+      Future.sequence(Seq(future1,future2))
     }
   }
       
-  coordinator ! Coordinator.AddSim(5L,system.actorOf((TaskSimulatorActor.props("sim1",coordinator,Seq("r1","r2"),generator)),"sim1"))
-  coordinator ! Coordinator.AddSim(4L,system.actorOf(Props(new TaskSimulatorActor("sim2",coordinator,Seq("r1"),generator)),"sim2"))
-  coordinator ! Coordinator.AddSim(3L,system.actorOf(Props(new TaskSimulatorActor("sim3",coordinator,Seq("r2"),generator)),"sim3"))
+  //coordinator ! Coordinator.AddSim(0L,system.actorOf((TaskSimulatorActor.props("sim1",coordinator,Seq("r1","r2"),generator)),"sim1"))
+  //coordinator ! Coordinator.AddSim(0L,system.actorOf(Props(new TaskSimulatorActor("sim2",coordinator,Seq("r1"),generator)),"sim2"))
+  //coordinator ! Coordinator.AddSim(0L,system.actorOf(Props(new TaskSimulatorActor("sim3",coordinator,Seq("r2"),generator)),"sim3"))
   coordinator ! Coordinator.AddSim(0L,system.actorOf(Props(new TestSimulationActor("simX",coordinator)),"simX"))
 
   //sims map { coordinator ! Coordinator.AddSim(0L,_) }
