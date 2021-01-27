@@ -1,37 +1,27 @@
 package com.workflowfm.healthcarehandover
 
-import akka.actor.ActorSystem
-import akka.util.Timeout
-import akka.pattern.ask
 import com.workflowfm.healthcarehandover.HealthcareHandoverTypes._
 import com.workflowfm.healthcarehandover.processes._
 import com.workflowfm.healthcarehandover.instances._
 import com.workflowfm.healthcarehandover._
-import akka.actor.Props
-import com.workflowfm.pew.simulator.PiSimulationActor
-import com.workflowfm.simulator._
-import com.workflowfm.simulator.events.{ ShutdownHandler }
-import com.workflowfm.simulator.metrics._
+
+import com.workflowfm.proter._
+import com.workflowfm.proter.metrics._
+import com.workflowfm.pew.simulator.PiSimulation
+
 import java.io.File
 import java.util.UUID
 import java.lang.Runtime
-import com.workflowfm.pew.execution.AkkaExecutor
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.concurrent.Await
 import scala.util.Try
-import uk.ac.ed.inf.ppapapan.subakka.Subscriber
 
 object SimulationsMain {
   
   def main(args: Array[String]): Unit = {
-	implicit val system = ActorSystem("HealthcareHandoverStatefulSimulation")
    	implicit val context: ExecutionContext = ExecutionContext.global
-
-	//println(system.settings)
-    println(s"Cores: ${Runtime.getRuntime().availableProcessors()}")
-    val config = system.settings.config.getConfig("akka.actor.default-dispatcher")
-    println(s"Parallelism: ${config.getInt("fork-join-executor.parallelism-min")}-${config.getInt("fork-join-executor.parallelism-max")} x ${config.getDouble("fork-join-executor.parallelism-factor")}")
 
 	val obstacleProbability = 0.3
 	
@@ -50,10 +40,7 @@ object SimulationsMain {
 	val resources  = List (petros, orphen, blah, pat1, pat2, pat3)
 	//
 
-    val coordinator = system.actorOf(Coordinator.props(DefaultScheduler))
-    val shutdownActor = Subscriber.actor(new ShutdownHandler())
-
-    implicit val timeout = Timeout(2.seconds)
+    val coordinator = new Coordinator(new DefaultScheduler())
 
 	val handler = SimMetricsOutputs(
 	  new SimMetricsPrinter(),
@@ -62,12 +49,11 @@ object SimulationsMain {
 	)
 
     // Subscribe the metrics actor
-    Await.result(new SimOutputHandler(handler).subAndForgetTo(coordinator,Some("MetricsHandler")), 3.seconds)
+    coordinator.subscribe(new SimOutputHandler(handler))
 
-    // Subscribe the shutdown actor
-    Await.result(shutdownActor ? Subscriber.SubAndForgetTo(coordinator), 3.seconds)
+    //coordinator.subscribe(new com.workflowfm.proter.events.PrintEventHandler)
 
-	coordinator ! Coordinator.AddResources(resources)
+	coordinator.addResources(resources: _*)
 
 	val copy_OpenContract_2 = new Copy_OpenContract_2Instance
    	val copy_ServiceProvider_2 = new Copy_ServiceProvider_2Instance
@@ -76,31 +62,29 @@ object SimulationsMain {
    	val setAssignmentResponsible = new SetAssignmentResponsibleInstance
     val setDelegationResponsible = new SetDelegationResponsibleInstance
 	
-	class AssignmentSimulation(simulationName:String,p:Patient,a:HealthcareActor,s:HealthcareService)(implicit val executionContext: ExecutionContext) extends PiSimulationActor[UUID](simulationName, coordinator)(executionContext) {
+	class AssignmentSimulation(simulationName:String,p:Patient,a:HealthcareActor,s:HealthcareService)(implicit context: ExecutionContext) extends PiSimulation(simulationName, coordinator)(context) {
 
-	  val checkOutcome = new CheckOutcomeInstance(simulationName,self,TaskGenerator("CheckOutcome",name,new ConstantGenerator(2L),new ConstantGenerator(1)))
-	  val awardContract = new AwardContractInstance(simulationName,self,TaskGenerator("AwardContract",name,new ConstantGenerator(1L),new ConstantGenerator(1)))
-	  val decideCollaboration = new DecideCollaborationInstance(simulationName,actors,3)
-	  val provideService = new ProvideServiceInstance(simulationName,self,TaskGenerator("ProvideService",name,new ConstantGenerator(5L),new ConstantGenerator(1)))((1-obstacleProbability)*100 toInt)
+	  val checkOutcome = new CheckOutcomeInstance(this,Task("CheckOutcome", 2L) withCost(1))(context)
+	  val awardContract = new AwardContractInstance(this,Task("AwardContract",1L).withCost(1))(context)
+	  val decideCollaboration = new DecideCollaborationInstance(simulationName,actors,3)(context)
+	  val provideService = new ProvideServiceInstance(this,Task("ProvideService",5L).withCost(1))((1-obstacleProbability)*100 toInt)(context)
  	  val assignHealthcareService = new AssignHealthcareService(awardContract , checkOutcome , copy_OpenContract_2 , copy_ServiceProvider_2 , decideCollaboration , provideService , requestAssignment , setAssignmentResponsible)
    	  
    	  override val rootProcess = assignHealthcareService
       override val args = Seq( a, s, p )
-      override val executor  = new AkkaExecutor()(context.system)
     }
   
 
-	class DelegationSimulation(simulationName:String,p:Patient,a:HealthcareActor,s:HealthcareService)(implicit val executionContext: ExecutionContext) extends PiSimulationActor[UUID](simulationName, coordinator)(executionContext) {
+	class DelegationSimulation(simulationName:String,p:Patient,a:HealthcareActor,s:HealthcareService)(implicit context: ExecutionContext) extends PiSimulation(simulationName, coordinator)(context) {
 	  
-	  val checkOutcome = new CheckOutcomeInstance(simulationName,self,TaskGenerator("CheckOutcome",name,new ConstantGenerator(2L),new ConstantGenerator(1)))
-	  val awardContract = new AwardContractInstance(simulationName,self,TaskGenerator("AwardContract",name,new ConstantGenerator(1L),new ConstantGenerator(1)))
-	  val decideCollaboration = new DecideCollaborationInstance(simulationName,actors,3)
-	  val provideService = new ProvideServiceInstance(simulationName,self,TaskGenerator("ProvideService",name,new ConstantGenerator(5L),new ConstantGenerator(1)))((1-obstacleProbability)*100 toInt)
+	  val checkOutcome = new CheckOutcomeInstance(this,Task("CheckOutcome",2L).withCost(1))(context)
+	  val awardContract = new AwardContractInstance(this,Task("AwardContract",1L).withCost(1))(context)
+	  val decideCollaboration = new DecideCollaborationInstance(simulationName,actors,3)(context)
+	  val provideService = new ProvideServiceInstance(this,Task("ProvideService",5L).withCost(1))((1-obstacleProbability)*100 toInt)(context)
    	  val delegateHealthcareService = new DelegateHealthcareService(awardContract , checkOutcome , copy_OpenContract_2 , decideCollaboration , provideService , requestDelegation , setDelegationResponsible)
 	  
    	  override val rootProcess = delegateHealthcareService
       override val args = Seq( a, s, p )
-      override val executor  = new AkkaExecutor()(context.system)
 	}
 	
 	//val superevent = new TaskSimulation("TaskSim", coordinator, Seq("Petros","Orphen"), new ConstantGenerator(5), new ConstantGenerator(5), -1, Task.Highest)
@@ -133,10 +117,12 @@ object SimulationsMain {
      tryToInt(args(0)).getOrElse(5)
     } else 5
     val sims =
-      (for (i <- 1 to n) yield system.actorOf(Props(new AssignmentSimulation(s"A$i",rand(patients),rand(actors),diagnosis)),s"A$i")) ++
-      (for (i <- 1 to n) yield system.actorOf(Props(new DelegationSimulation(s"D$i",rand(patients),rand(actors),diagnosis)),s"D$i"))
+      (for (i <- 1 to n) yield new AssignmentSimulation(s"A$i",rand(patients),rand(actors),diagnosis)) ++
+      (for (i <- 1 to n) yield new DelegationSimulation(s"D$i",rand(patients),rand(actors),diagnosis))
 
-    sims map { coordinator ! Coordinator.AddSim(0L,_) }
-	coordinator ! Coordinator.Start
+//    sims.map(_.subscribe(new com.workflowfm.pew.stream.PrintEventHandler))
+
+    coordinator.addSimulationsNow(sims: _*)
+	Await.result(coordinator.start(), 1.hour)
   }
 }

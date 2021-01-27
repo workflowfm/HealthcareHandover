@@ -1,6 +1,6 @@
 package com.workflowfm.healthcarehandover
 
-import com.workflowfm.simulator.TaskResource
+import com.workflowfm.proter.TaskResource
 
 package object HealthcareHandoverTypes
 {  

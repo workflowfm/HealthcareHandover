@@ -1,13 +1,12 @@
 package com.workflowfm.healthcarehandover.instances
 
-import akka.actor.{ ActorRef, ActorSystem }
-import com.workflowfm.pew.simulator.PiSimulatedProcess
-import com.workflowfm.simulator.TaskGenerator
+import com.workflowfm.pew.simulator.{ PiSimulation, PiSimulatedProcess }
+import com.workflowfm.proter.Task
 import com.workflowfm.healthcarehandover.HealthcareHandoverTypes._
 import com.workflowfm.healthcarehandover.processes._
 import scala.concurrent.{ ExecutionContext, Future }
 
-class ProvideServiceInstance (override val simulationName:String, override val simulationActor: ActorRef, taskGenerator:TaskGenerator)(chance :Int, max :Int = 100) (implicit system: ActorSystem, context: ExecutionContext) extends ProvideService with PiSimulatedProcess {
+class ProvideServiceInstance (override val simulation: PiSimulation, task: Task)(chance :Int, max :Int = 100) (implicit context: ExecutionContext) extends ProvideService with PiSimulatedProcess {
 	override def apply( arg0 :OpenContract, arg1 :PendingHealthcareService ) :Future[Either[CompletedHealthcareService,(Obstacle,PendingHealthcareService)]] = { 
 	  val random = new util.Random()
 		val result = if (random.nextInt(max) < chance) {
@@ -17,6 +16,6 @@ class ProvideServiceInstance (override val simulationName:String, override val s
 		  //println(name + " (OBSTACLE)") 
 		  Right(Obstacle("obstacle"),PendingHealthcareService(arg1.name))
 		}
-      simulate(taskGenerator, (_,_) => result, arg0.provider.name, arg0.patient.name)
+      simulate(task withResources Seq(arg0.provider.name, arg0.patient.name), (_,_) => result)
 	}
 }
