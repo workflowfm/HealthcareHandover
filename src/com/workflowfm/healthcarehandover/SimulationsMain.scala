@@ -49,11 +49,11 @@ object SimulationsMain {
 	)
 
     // Subscribe the metrics actor
-    coordinator.subscribe(new SimOutputHandler(handler))
+    coordinator.subscribe(new SimMetricsHandler(handler))
 
     //coordinator.subscribe(new com.workflowfm.proter.events.PrintEventHandler)
 
-	coordinator.addResources(resources: _*)
+	coordinator.addResources(resources)
 
 	val copy_OpenContract_2 = new Copy_OpenContract_2Instance
    	val copy_ServiceProvider_2 = new Copy_ServiceProvider_2Instance
@@ -122,7 +122,7 @@ object SimulationsMain {
 
 //    sims.map(_.subscribe(new com.workflowfm.pew.stream.PrintEventHandler))
 
-    coordinator.addSimulationsNow(sims: _*)
+    coordinator.addSimulationsNow(sims)
 	Await.result(coordinator.start(), 1.hour)
   }
 }
