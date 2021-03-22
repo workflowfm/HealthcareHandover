@@ -38,6 +38,7 @@ object SimulationsMain {
     val patients = List(pat1, pat2, pat3)
 	val actors = List (petros, orphen, blah)
 	val resources  = List (petros, orphen, blah, pat1, pat2, pat3)
+    val services = List (diagnosis, diagnosis, diagnosis, diagnosis, haemodialysis)
 	//
 
     val coordinator = new Coordinator(new DefaultScheduler())
@@ -117,8 +118,8 @@ object SimulationsMain {
      tryToInt(args(0)).getOrElse(5)
     } else 5
     val sims =
-      (for (i <- 1 to n) yield new AssignmentSimulation(s"A$i",rand(patients),rand(actors),diagnosis)) ++
-      (for (i <- 1 to n) yield new DelegationSimulation(s"D$i",rand(patients),rand(actors),diagnosis))
+      (for (i <- 1 to n) yield new AssignmentSimulation(s"A$i",rand(patients),rand(actors),rand(services))) ++
+      (for (i <- 1 to n) yield new DelegationSimulation(s"D$i",rand(patients),rand(actors),rand(services)))
 
 //    sims.map(_.subscribe(new com.workflowfm.pew.stream.PrintEventHandler))
 

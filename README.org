@@ -1,0 +1,87 @@
+#+TITLE: Healthcare Handover
+#+AUTHOR: Petros Papapanagiotou
+
+[[https://opensource.org/licenses/Apache-2.0][https://img.shields.io/badge/license-Apache%202.0-yellowgreen.svg]]
+
+Example simulation for a patient handover workflow (assignment & delegation).
+
+| Created by [[https://github.com/PetrosPapapa][Petros Papapanagiotou]] |
+| [[https://aiml.inf.ed.ac.uk/][Artificial Intelligence Modelling Lab]] |
+| [[https://web.inf.ed.ac.uk/aiai][Artificial Intelligence and its Applications Institute]] |
+| [[https://www.ed.ac.uk/informatics/][School of Informatics, University of Edinburgh]] |
+
+This is part of the [[https://github.com/workflowfm/][WorkflowFM]] framework for correct-by-construction process and resource workflows.
+
+* Install / Run
+
+Dependencies:
+- Java 8, Scala 2.12.12
+- [[https://www.scala-sbt.org/][sbt]] v1.2.3 (or later)
+- [[https://github.com/workflowfm/Proter][Proter]] v0.6: Clone the repo and run ~sbt publishLocal~.
+- [[https://github.com/PetrosPapapa/WorkflowFM-PEW][PEW]] v1.5: Clone the repo and run ~sbt publishLocal~.
+
+Execute using ~sbt run~. This will run ~5~ assignment and ~5~ delegation workflows.
+
+You can change the number of workflows by providing an argument to ~run~. For example, ~sbt "run 10"~ will run ~10~ of each of the 2 workflows.
+
+* Model
+
+The workflow models describe 2 modes of patient handover from one medical staff to another for a particular healthcare service:
+1. *Assignment*: responsibility is fully transferred to the service provider
+[[https://raw.githubusercontent.com/PetrosPapapa/HealthcareHandover/master/workflow/Assignment.png]]
+2. *Delegation*: the requester retains responsibility of checking the result of the service
+[[https://raw.githubusercontent.com/PetrosPapapa/HealthcareHandover/master/workflow/Delegation.png]]
+
+The workflow models are described in more detail in the following 2 publications:
+- Papapanagiotou, P & Fleuriot, J 2014, [[http://www.tandfonline.com/doi/abs/10.1080/0144929X.2013.824506][Formal verification of collaboration patterns in healthcare]]. Behaviour and Information Technology, vol 33, no. 12, pp. 1278-1293.
+- Papapanagiotou, P, Fleuriot, J & Grando, A 2012, [[http://ieeexplore.ieee.org/document/6266330/][Rigorous process-based modelling of patterns for collaborative work in healthcare teams]]. 25th International Symposium on Computer-Based Medical Systems (CBMS), 1-6.
+
+The simulation model contains the following elements as a toy example:
+- *Services*: diagnosis, haemodialysis
+- *Patients*: Patient1, Patient2, Patient3
+- *Medical staff*: Petros (diagnosis), Blah (diagnosis), Orphen (diagnosis, haemodialysis)
+
+Each workflow will attempt to assign/delegate diagnosis (80%) or haemodialysis (20%) for a random patient, choosing a random medical staff member as the requester.
+
+The contract will be rejected if no capable actors are found, which only happens if Orphen requests a haemodialysis. Otherwise, a medical staff member is selected at random to provide the service.
+
+There is a 30% chance that an obstacle will occur and the service will fail.
+
+~AwardContract~ takes 1 unit of time, ~ProvideService~ takes 5 units of time, and ~CheckOutcome~ takes 2 units of time.
+
+* Results
+
+Results are provided in 3 forms of output in the ~output/~ directory:
+
+1. A printed output with all the results.
+2. CSV files with results on resources, tasks, and simulations (workflows).
+3. A timeline.
+
+To view the timeline, make sure you load submodules using:
+#+BEGIN_SRC sh
+git submodule update --init
+#+END_SRC
+
+Then open ~HealthcareHandoverStateful-timeline.html~ in your browser.
+
+* Authors
+:PROPERTIES:
+:CUSTOM_ID: authors
+:END:
+
+** Maintainer
+
+   [[https://github.com/PetrosPapapa][Petros Papapanagiotou]] - pe.p@ed.ac.uk - [[https://twitter.com/petrospapapa][@PetrosPapapa]]
+
+** Contributors
+
+   A big thank you to the following contributors in order of appearance:
+
+   - Jacques Fleuriot 
+
+
+* License
+
+Distributed under the Apache 2.0 license. See [[LICENSE]] for more information.
+
+Copyright \copy 2012-2021 [[https://www.ed.ac.uk/][The University of Edinburgh]] and [[#authors][contributors]]
