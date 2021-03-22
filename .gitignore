@@ -17,5 +17,6 @@
 .projectile
 .bloop/
 .metals/
+.bsp/
 project/metals.sbt
 output/HealthcareHandover*

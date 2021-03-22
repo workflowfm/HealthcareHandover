@@ -16,7 +16,7 @@ This is part of the [[https://github.com/workflowfm/][WorkflowFM]] framework for
 
 Dependencies:
 - Java 8, Scala 2.12.12
-- [[https://www.scala-sbt.org/][sbt]] v1.2.3 (or later)
+- [[https://www.scala-sbt.org/][sbt]] v1.4.3 (or later)
 - [[https://github.com/workflowfm/Proter][Proter]] v0.6: Clone the repo and run ~sbt publishLocal~.
 - [[https://github.com/PetrosPapapa/WorkflowFM-PEW][PEW]] v1.5: Clone the repo and run ~sbt publishLocal~.
 
