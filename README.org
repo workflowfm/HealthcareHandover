@@ -22,15 +22,15 @@ Dependencies:
 
 Execute using ~sbt run~. This will run ~5~ assignment and ~5~ delegation workflows.
 
-You can change the number of workflows by providing an argument to ~run~. For example, ~sbt "run 10"~ will run ~10~ of each of the 2 workflows.
+You can change the number of workflows by providing an argument to ~run~. For example, ~sbt "run 10" ~ will run ~10~ of each of the 2 workflows.
 
 * Model
 
 The workflow models describe 2 modes of patient handover from one medical staff to another for a particular healthcare service:
 1. *Assignment*: responsibility is fully transferred to the service provider
-[[https://raw.githubusercontent.com/PetrosPapapa/HealthcareHandover/master/workflow/Assignment.png]]
+[[https://raw.githubusercontent.com/workflowfm/HealthcareHandover/master/workflow/Assignment.png]]
 2. *Delegation*: the requester retains responsibility of checking the result of the service
-[[https://raw.githubusercontent.com/PetrosPapapa/HealthcareHandover/master/workflow/Delegation.png]]
+https://raw.githubusercontent.com/workflowfm/HealthcareHandover/master/workflow/Delegation.png]]
 
 The workflow models are described in more detail in the following 2 publications:
 - Papapanagiotou, P & Fleuriot, J 2014, [[http://www.tandfonline.com/doi/abs/10.1080/0144929X.2013.824506][Formal verification of collaboration patterns in healthcare]]. Behaviour and Information Technology, vol 33, no. 12, pp. 1278-1293.
