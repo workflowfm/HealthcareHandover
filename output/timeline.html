@@ -1,0 +1,28 @@
+<html>
+<head>
+    <title>Healthcare Handover - Results Timeline</title>
+    <meta charset="utf-8">
+    <script type="text/javascript" src="https://github.com/workflowfm/vis-workflow-timeline/releases/download/v0.0.1/bundle.js"></script>
+    <link href="https://unpkg.com/vis-timeline@latest/styles/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
+    <style>
+      div {
+          font-family: sans-serif;
+          font-size: 11px;
+      }
+    </style>
+</head>
+
+<body>
+<h2>Resources:</h2>
+<div id="resources"></div>
+<h2>Simulations:</h2>
+<div id="simulations"></div>
+
+<script type="text/javascript" src="HealthcareHandoverStatefulSimulation-simdata.js"></script> 
+<script type="text/javascript">
+  workflowUnitTimeline("resources", resourceData, tasks);
+  workflowUnitTimeline("simulations", simulationData, tasks);
+</script>
+
+</body>
+</html>
